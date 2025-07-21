@@ -22,7 +22,8 @@ WORKDIR /app
 COPY . /app
 RUN pip --no-cache-dir install \
     /app/packages/markitdown[all] \
-    /app/packages/markitdown-sample-plugin
+    /app/packages/markitdown-sample-plugin \
+    /app/packages/markitdown-mhtml-plugin
 
 # Default USERID and GROUPID
 ARG USERID=nobody

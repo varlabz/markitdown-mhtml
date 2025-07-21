@@ -1,0 +1,23 @@
+From: <saved by user>
+Subject: Test MHTML File
+Date: Mon, 1 Jan 2023 00:00:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="----=_NextPart_000"
+
+------=_NextPart_000
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Test MHTML File</title>
+</head>
+<body>
+<h1>This is a Test MHTML File</h1>
+<p>It is included to test if the MarkItDown MHTML plugin can correctly convert MHTML files.</p>
+<p>MHTML (MIME HTML) is a web archive format that stores a complete webpage and its resources in a single file.</p>
+</body>
+</html>
+
+------=_NextPart_000--
