@@ -22,10 +22,33 @@ pip install markitdown-mhtml-plugin
 
 ## Usage
 
+
 ```python
 from markitdown import MarkItDown
 
 # The plugin will be automatically registered when imported
+md = MarkItDown()
+result = md.convert("example.mhtml")
+print(result.markdown)
+```
+
+### Environment Variable: MHTML_ARCHIVE_IS
+
+If the environment variable `MHTML_ARCHIVE_IS` is set to `1`, the converter will extract and convert only the `<div id="CONTENT">` section from the HTML within the MHTML file (if present). This is useful for MHTML files that contain a main content div and you want to ignore other HTML parts.
+
+Example usage:
+
+```bash
+export MHTML_ARCHIVE_IS=1
+python your_script.py
+```
+
+Or in Python:
+
+```python
+import os
+os.environ["MHTML_ARCHIVE_IS"] = "1"
+from markitdown import MarkItDown
 md = MarkItDown()
 result = md.convert("example.mhtml")
 print(result.markdown)

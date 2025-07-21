@@ -53,11 +53,16 @@ class MhtmlConverter(DocumentConverter):
                 markdown="HTML content not found in MHTML file."
             )
 
-        # Extract specific div content if environment variable is set
+        # Extract filtered content if environment variable is set
+        filters = []
         if os.getenv('MHTML_ARCHIVE_IS') == '1':
-            content_div_html = self._extract_content_div(html_content)
-            if content_div_html:
-                html_content = content_div_html
+            filters.append({"name": "div", "attrs": {"id": "CONTENT"}})
+        if os.getenv('MHTML_MEDIUM') == '1':
+            filters.append({"name": "article"})
+        if filters:
+            filtered_html = self._extract_content(html_content, filters)
+            if filtered_html:
+                html_content = filtered_html
 
         # Convert HTML to Markdown using MarkItDown's public API
         html_stream = io.BytesIO(html_content.encode('utf-8'))
@@ -86,19 +91,29 @@ class MhtmlConverter(DocumentConverter):
         
         return largest_html
 
-    def _extract_content_div(self, html_content: str) -> str:
-        """Extract the div with id='CONTENT' from HTML using BeautifulSoup."""
+    def _extract_content(self, html_content: str, filters: list) -> str:
+        """
+        Extracts filtered content from HTML using BeautifulSoup.
+        Filters is a list of dicts, each describing a filter, e.g.:
+        [{"name": "div", "attrs": {"id": "CONTENT"}}, {"name": "article"}]
+        Returns a new HTML page with the filtered elements, or the original page if no filters match.
+        """
         try:
-            soup = BeautifulSoup(html_content, 'html.parser')
-            content_div = soup.find('div', id='CONTENT')
-            if content_div:
-                # Create a new valid HTML page with the content_div
+            current = BeautifulSoup(html_content, 'html.parser')
+            is_found = False
+            for f in filters:
+                name = f.get('name')
+                attrs = f.get('attrs', {})
+                found = current.find(name, attrs) if attrs else current.find(name)
+                if found:
+                    current = found
+                    is_found = True
+            if is_found:
                 new_soup = BeautifulSoup('<html><head><title></title></head><body></body></html>', 'html.parser')
-                new_soup.body.append(content_div)
+                new_soup.body.append(current)
                 return str(new_soup)
             else:
-                return None
-                
-        except Exception as e:
-            return None
+                return html_content
+        except Exception:
+            return html_content
 

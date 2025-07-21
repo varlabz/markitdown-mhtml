@@ -76,10 +76,11 @@ def assert_strings_absent(content: str, strings: set):
 
 
 def test_extract_content_div_valid_html():
-    """Test that _extract_content_div returns a valid HTML page."""
+    """Test that _extract_content returns the correct HTML when a valid CONTENT div is present."""
     converter = MhtmlConverter()
     html_with_content_div = '<html><body><div id="CONTENT"><p>Hello</p></div></body></html>'
-    extracted_html = converter._extract_content_div(html_with_content_div)
+    filters = [{"name": "div", "attrs": {"id": "CONTENT"}}]
+    extracted_html = converter._extract_content(html_with_content_div, filters)
     assert extracted_html is not None
     assert extracted_html.strip().startswith('<html')
     assert '<body>' in extracted_html
@@ -87,13 +88,12 @@ def test_extract_content_div_valid_html():
 
 
 def test_extract_content_div_no_div():
-    """Test that _extract_content_div returns None when no CONTENT div is found."""
+    """Test that _extract_content returns the original HTML when no CONTENT div is found."""
     converter = MhtmlConverter()
     html_without_content_div = '<html><body><div><p>No content div</p></div></body></html>'
-    
-    extracted_html = converter._extract_content_div(html_without_content_div)
-    
-    assert extracted_html is None
+    filters = [{"name": "div", "attrs": {"id": "CONTENT"}}]
+    extracted_html = converter._extract_content(html_without_content_div, filters)
+    assert extracted_html == html_without_content_div
 
 
 def test_converter() -> None:
