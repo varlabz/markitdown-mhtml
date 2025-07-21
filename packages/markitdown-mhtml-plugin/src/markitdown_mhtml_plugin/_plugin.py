@@ -92,7 +92,10 @@ class MhtmlConverter(DocumentConverter):
             soup = BeautifulSoup(html_content, 'html.parser')
             content_div = soup.find('div', id='CONTENT')
             if content_div:
-                return str(content_div)
+                # Create a new valid HTML page with the content_div
+                new_soup = BeautifulSoup('<html><head><title></title></head><body></body></html>', 'html.parser')
+                new_soup.body.append(content_div)
+                return str(new_soup)
             else:
                 return None
                 

@@ -75,6 +75,27 @@ def assert_strings_absent(content: str, strings: set):
         assert string not in content, f"Did not expect '{string}' in output"
 
 
+def test_extract_content_div_valid_html():
+    """Test that _extract_content_div returns a valid HTML page."""
+    converter = MhtmlConverter()
+    html_with_content_div = '<html><body><div id="CONTENT"><p>Hello</p></div></body></html>'
+    extracted_html = converter._extract_content_div(html_with_content_div)
+    assert extracted_html is not None
+    assert extracted_html.strip().startswith('<html')
+    assert '<body>' in extracted_html
+    assert '<div id="CONTENT"><p>Hello</p></div>' in extracted_html
+
+
+def test_extract_content_div_no_div():
+    """Test that _extract_content_div returns None when no CONTENT div is found."""
+    converter = MhtmlConverter()
+    html_without_content_div = '<html><body><div><p>No content div</p></div></body></html>'
+    
+    extracted_html = converter._extract_content_div(html_without_content_div)
+    
+    assert extracted_html is None
+
+
 def test_converter() -> None:
     """Tests the MHTML converter directly."""
     test_file_path = os.path.join(TEST_FILES_DIR, "test.mhtml")
@@ -164,11 +185,11 @@ if __name__ == "__main__":
         # Basic functionality
         test_converter,
         test_markitdown,
-        
+        test_extract_content_div_valid_html,
+        test_extract_content_div_no_div,
         # CONTENT div extraction
         test_content_div_extraction,
         test_content_div_extraction_disabled,
-        
         # Edge cases and error handling
         test_no_content_div_fallback,
         test_malformed_html_handling,
@@ -176,8 +197,6 @@ if __name__ == "__main__":
         test_invalid_env_var_values,
         test_multiple_content_divs,
     ]
-    
     for test in tests:
         test()
-    
     print("All tests passed.")
