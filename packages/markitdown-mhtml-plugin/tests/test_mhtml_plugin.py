@@ -169,6 +169,53 @@ def test_invalid_env_var_values() -> None:
         finally:
             if 'MHTML_ARCHIVE_IS' in os.environ:
                 del os.environ['MHTML_ARCHIVE_IS']
+    
+    
+@contextmanager
+def medium_mode_enabled():
+    """Context manager for setting MHTML_MEDIUM=1."""
+    os.environ['MHTML_MEDIUM'] = '1'
+    try:
+        yield
+    finally:
+        if 'MHTML_MEDIUM' in os.environ:
+            del os.environ['MHTML_MEDIUM']
+
+def test_medium_article_extraction() -> None:
+    """Tests <article> extraction when MHTML_MEDIUM=1."""
+    with medium_mode_enabled():
+        content = convert_mhtml_file("test_blog.html")
+        # Should contain main article content
+        assert "Blog Post Title" in content
+        assert "This is the main article content." in content
+        # Should not contain unrelated sidebar/footer
+        assert "Sidebar content" not in content
+        assert "Footer info" not in content
+
+def test_medium_article_extraction_disabled() -> None:
+    """Tests full HTML processing when MHTML_MEDIUM is not set."""
+    if 'MHTML_MEDIUM' in os.environ:
+        del os.environ['MHTML_MEDIUM']
+    content = convert_mhtml_file("test_blog.html")
+    # Should contain both article and sidebar/footer
+    assert "Blog Post Title" in content
+    assert "This is the main article content." in content
+    assert "Sidebar content" in content
+    assert "Footer info" in content
+
+def test_invalid_medium_env_var_values() -> None:
+    """Tests that only MHTML_MEDIUM=1 triggers article extraction."""
+    test_values = ['0', 'true', 'false', 'yes', 'no', '2', '', 'invalid']
+    for test_value in test_values:
+        os.environ['MHTML_MEDIUM'] = test_value
+        try:
+            content = convert_mhtml_file("test_blog.html")
+            # Should contain sidebar/footer if not exactly '1'
+            assert "Sidebar content" in content
+            assert "Footer info" in content
+        finally:
+            if 'MHTML_MEDIUM' in os.environ:
+                del os.environ['MHTML_MEDIUM']
 
 
 def test_multiple_content_divs() -> None:
@@ -196,6 +243,10 @@ if __name__ == "__main__":
         test_empty_content_div,
         test_invalid_env_var_values,
         test_multiple_content_divs,
+        # MEDIUM article extraction
+        test_medium_article_extraction,
+        test_medium_article_extraction_disabled,
+        test_invalid_medium_env_var_values,
     ]
     for test in tests:
         test()
