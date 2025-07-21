@@ -1,0 +1,24 @@
+From: <saved by user>
+Subject: Test MHTML File with Malformed HTML
+Date: Mon, 1 Jan 2023 00:00:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="----=_NextPart_000"
+
+------=_NextPart_000
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Malformed HTML Test
+</head>
+<body>
+<div id="CONTENT">
+<h1>Malformed Content</h1>
+<p>This HTML has unclosed tags and should still work
+<div>Nested div without closing
+<p>Another unclosed paragraph
+</div>
+
+------=_NextPart_000--

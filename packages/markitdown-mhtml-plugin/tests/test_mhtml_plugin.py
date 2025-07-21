@@ -1,17 +1,78 @@
 #!/usr/bin/env python3 -m pytest
 import os
-import io
+from contextlib import contextmanager
 
 from markitdown import MarkItDown, StreamInfo
 from markitdown_mhtml_plugin import MhtmlConverter
 
 TEST_FILES_DIR = os.path.join(os.path.dirname(__file__), "test_files")
 
+# Test data
 MHTML_TEST_STRINGS = {
     "This is a Test MHTML File",
     "It is included to test if the MarkItDown MHTML plugin can correctly convert MHTML files.",
     "MHTML (MIME HTML) is a web archive format",
 }
+
+CONTENT_DIV_STRINGS = {
+    "Main Content Title",
+    "This is the main content that should be extracted when MHTML\\_ARCHIVE\\_IS=1.",
+    "Only this content should appear in the markdown output.",
+    "Content item 1",
+    "Content item 2",
+}
+
+EXCLUDED_STRINGS = {
+    "This is a header that should be ignored",
+    "Header content that should not appear in the output",
+    "Footer content that should be ignored",
+}
+
+NO_CONTENT_DIV_STRINGS = {
+    "No Content Div Here",
+    "This MHTML file has no div with id CONTENT",
+    "Should fall back to full content",
+}
+
+
+@contextmanager
+def archive_mode_enabled():
+    """Context manager for setting MHTML_ARCHIVE_IS=1."""
+    os.environ['MHTML_ARCHIVE_IS'] = '1'
+    try:
+        yield
+    finally:
+        if 'MHTML_ARCHIVE_IS' in os.environ:
+            del os.environ['MHTML_ARCHIVE_IS']
+
+
+@contextmanager
+def archive_mode_disabled():
+    """Context manager for ensuring MHTML_ARCHIVE_IS is not set."""
+    if 'MHTML_ARCHIVE_IS' in os.environ:
+        del os.environ['MHTML_ARCHIVE_IS']
+    yield
+
+
+def convert_mhtml_file(filename: str) -> str:
+    """Helper to convert MHTML file and return text content."""
+    md = MarkItDown(enable_plugins=True)
+    test_file_path = os.path.join(TEST_FILES_DIR, filename)
+    with open(test_file_path, "rb") as file:
+        result = md.convert_stream(file, file_extension=".mhtml")
+    return result.text_content
+
+
+def assert_strings_present(content: str, strings: set):
+    """Assert all strings are present in content."""
+    for string in strings:
+        assert string in content, f"Expected '{string}' in output"
+
+
+def assert_strings_absent(content: str, strings: set):
+    """Assert all strings are absent from content."""
+    for string in strings:
+        assert string not in content, f"Did not expect '{string}' in output"
 
 
 def test_converter() -> None:
@@ -27,24 +88,96 @@ def test_converter() -> None:
             ),
         )
 
-    for test_string in MHTML_TEST_STRINGS:
-        assert test_string in result.text_content
+    assert_strings_present(result.text_content, MHTML_TEST_STRINGS)
 
 
 def test_markitdown() -> None:
     """Tests that MarkItDown correctly loads the plugin."""
-    md = MarkItDown(enable_plugins=True)
-    
-    test_file_path = os.path.join(TEST_FILES_DIR, "test.mhtml")
-    with open(test_file_path, "rb") as file:
-        result = md.convert_stream(file, file_extension=".mhtml")
+    content = convert_mhtml_file("test.mhtml")
+    assert_strings_present(content, MHTML_TEST_STRINGS)
 
-    for test_string in MHTML_TEST_STRINGS:
-        assert test_string in result.text_content
+
+def test_content_div_extraction() -> None:
+    """Tests div extraction when MHTML_ARCHIVE_IS=1."""
+    with archive_mode_enabled():
+        content = convert_mhtml_file("test_with_content_div.mhtml")
+        assert_strings_present(content, CONTENT_DIV_STRINGS)
+        assert_strings_absent(content, EXCLUDED_STRINGS)
+
+
+def test_content_div_extraction_disabled() -> None:
+    """Tests full HTML processing when MHTML_ARCHIVE_IS is not set."""
+    with archive_mode_disabled():
+        content = convert_mhtml_file("test_with_content_div.mhtml")
+        assert_strings_present(content, CONTENT_DIV_STRINGS)
+        assert_strings_present(content, EXCLUDED_STRINGS)
+
+
+def test_no_content_div_fallback() -> None:
+    """Tests fallback to full HTML when no CONTENT div exists."""
+    with archive_mode_enabled():
+        content = convert_mhtml_file("test_no_content_div.mhtml")
+        assert_strings_present(content, NO_CONTENT_DIV_STRINGS)
+
+
+def test_malformed_html_handling() -> None:
+    """Tests graceful handling of malformed HTML."""
+    with archive_mode_enabled():
+        content = convert_mhtml_file("test_malformed_html.mhtml")
+        assert "Malformed Content" in content
+        assert len(content.strip()) > 0
+
+
+def test_empty_content_div() -> None:
+    """Tests behavior with empty CONTENT div."""
+    with archive_mode_enabled():
+        content = convert_mhtml_file("test_empty_content_div.mhtml")
+        assert_strings_absent(content, {"Header content", "Footer content"})
+        assert len(content.strip()) == 0
+
+
+def test_invalid_env_var_values() -> None:
+    """Tests that only MHTML_ARCHIVE_IS=1 triggers div extraction."""
+    test_values = ['0', 'true', 'false', 'yes', 'no', '2', '', 'invalid']
+    
+    for test_value in test_values:
+        os.environ['MHTML_ARCHIVE_IS'] = test_value
+        try:
+            content = convert_mhtml_file("test_with_content_div.mhtml")
+            assert_strings_present(content, EXCLUDED_STRINGS)
+        finally:
+            if 'MHTML_ARCHIVE_IS' in os.environ:
+                del os.environ['MHTML_ARCHIVE_IS']
+
+
+def test_multiple_content_divs() -> None:
+    """Tests behavior with multiple CONTENT divs (extracts first)."""
+    with archive_mode_enabled():
+        content = convert_mhtml_file("test_multiple_content_divs.mhtml")
+        assert "First content div" in content
+        assert "Other content" not in content
 
 
 if __name__ == "__main__":
-    """Runs this file's tests from the command line."""
-    # test_converter()
-    test_markitdown()
+    """Run all tests."""
+    tests = [
+        # Basic functionality
+        test_converter,
+        test_markitdown,
+        
+        # CONTENT div extraction
+        test_content_div_extraction,
+        test_content_div_extraction_disabled,
+        
+        # Edge cases and error handling
+        test_no_content_div_fallback,
+        test_malformed_html_handling,
+        test_empty_content_div,
+        test_invalid_env_var_values,
+        test_multiple_content_divs,
+    ]
+    
+    for test in tests:
+        test()
+    
     print("All tests passed.")

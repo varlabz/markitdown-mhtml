@@ -1,0 +1,28 @@
+From: <saved by user>
+Subject: Test MHTML File with Empty Content Div
+Date: Mon, 1 Jan 2023 00:00:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="----=_NextPart_000"
+
+------=_NextPart_000
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Test MHTML File with Empty Content Div</title>
+</head>
+<body>
+<div id="header">
+<h1>Header content</h1>
+</div>
+<div id="CONTENT">
+</div>
+<div id="footer">
+<p>Footer content</p>
+</div>
+</body>
+</html>
+
+------=_NextPart_000--

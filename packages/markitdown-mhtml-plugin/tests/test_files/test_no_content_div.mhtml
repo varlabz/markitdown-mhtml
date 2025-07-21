@@ -1,0 +1,25 @@
+From: <saved by user>
+Subject: Test MHTML File without Content Div
+Date: Mon, 1 Jan 2023 00:00:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="----=_NextPart_000"
+
+------=_NextPart_000
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Test MHTML File without Content Div</title>
+</head>
+<body>
+<div id="main">
+<h1>No Content Div Here</h1>
+<p>This MHTML file has no div with id CONTENT</p>
+<p>Should fall back to full content</p>
+</div>
+</body>
+</html>
+
+------=_NextPart_000--

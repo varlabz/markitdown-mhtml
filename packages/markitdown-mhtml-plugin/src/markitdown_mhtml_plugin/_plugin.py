@@ -1,7 +1,9 @@
 import io
+import os
 from email import message_from_string
 from typing import BinaryIO, Any
 
+from bs4 import BeautifulSoup
 from markitdown import (
     MarkItDown,
     DocumentConverter,
@@ -51,6 +53,12 @@ class MhtmlConverter(DocumentConverter):
                 markdown="HTML content not found in MHTML file."
             )
 
+        # Extract specific div content if environment variable is set
+        if os.getenv('MHTML_ARCHIVE_IS') == '1':
+            content_div_html = self._extract_content_div(html_content)
+            if content_div_html:
+                html_content = content_div_html
+
         # Convert HTML to Markdown using MarkItDown's public API
         html_stream = io.BytesIO(html_content.encode('utf-8'))
         result = self._markitdown.convert_stream(html_stream, file_extension='.html', )
@@ -77,4 +85,17 @@ class MhtmlConverter(DocumentConverter):
                         largest_html = html
         
         return largest_html
+
+    def _extract_content_div(self, html_content: str) -> str:
+        """Extract the div with id='CONTENT' from HTML using BeautifulSoup."""
+        try:
+            soup = BeautifulSoup(html_content, 'html.parser')
+            content_div = soup.find('div', id='CONTENT')
+            if content_div:
+                return str(content_div)
+            else:
+                return None
+                
+        except Exception as e:
+            return None
 

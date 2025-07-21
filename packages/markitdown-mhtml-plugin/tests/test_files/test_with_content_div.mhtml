@@ -1,0 +1,36 @@
+From: <saved by user>
+Subject: Test MHTML File with Content Div
+Date: Mon, 1 Jan 2023 00:00:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="----=_NextPart_000"
+
+------=_NextPart_000
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Test MHTML File with Content Div</title>
+</head>
+<body>
+<div id="header">
+<h1>This is a header that should be ignored</h1>
+<p>Header content that should not appear in the output when CONTENT div is extracted.</p>
+</div>
+<div id="CONTENT">
+<h2>Main Content Title</h2>
+<p>This is the main content that should be extracted when MHTML_ARCHIVE_IS=1.</p>
+<p>Only this content should appear in the markdown output.</p>
+<ul>
+<li>Content item 1</li>
+<li>Content item 2</li>
+</ul>
+</div>
+<div id="footer">
+<p>Footer content that should be ignored when CONTENT div is extracted.</p>
+</div>
+</body>
+</html>
+
+------=_NextPart_000--
