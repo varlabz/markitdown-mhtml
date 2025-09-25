@@ -10,6 +10,11 @@ from starlette.routing import Mount, Route
 from starlette.types import Receive, Scope, Send
 from mcp.server import Server
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
+from mcp.shared.exceptions import McpError
+from mcp.types import (
+    ErrorData,
+    INTERNAL_ERROR,
+)
 from markitdown import MarkItDown
 import uvicorn
 
@@ -20,8 +25,10 @@ mcp = FastMCP("markitdown")
 @mcp.tool()
 async def convert_to_markdown(uri: str) -> str:
     """Convert a resource described by an http:, https:, file: or data: URI to markdown"""
-    return MarkItDown(enable_plugins=check_plugins_enabled()).convert_uri(uri).markdown
-
+    try:
+        return MarkItDown(enable_plugins=check_plugins_enabled()).convert_uri(uri).markdown
+    except Exception as e:
+        raise McpError(ErrorData(code=INTERNAL_ERROR, message=f"Error converting {uri} to markdown: {e}"))
 
 def check_plugins_enabled() -> bool:
     return os.getenv("MARKITDOWN_ENABLE_PLUGINS", "false").strip().lower() in (
