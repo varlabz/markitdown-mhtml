@@ -27,7 +27,7 @@ async def convert_to_markdown(uri: str) -> str:
     """Convert a resource described by an http:, https:, file: or data: URI to markdown"""
     try:
         return MarkItDown(enable_plugins=check_plugins_enabled()).convert_uri(uri).markdown
-    except Exception as e:
+    except BaseException  as e:
         raise McpError(ErrorData(code=INTERNAL_ERROR, message=f"Error converting {uri} to markdown: {e}"))
 
 def check_plugins_enabled() -> bool:
