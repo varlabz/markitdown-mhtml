@@ -53,16 +53,12 @@ class MhtmlConverter(DocumentConverter):
                 markdown="HTML content not found in MHTML file."
             )
 
-        # Extract filtered content if environment variable is set
-        filters = []
-        if os.getenv('MHTML_ARCHIVE_IS') == '1':
-            filters.append({"name": "div", "attrs": {"id": "CONTENT"}})
-        if os.getenv('MHTML_MEDIUM') == '1':
-            filters.append({"name": "article"})
-        if filters:
-            filtered_html = self._extract_content(html_content, filters)
-            if filtered_html:
-                html_content = filtered_html
+        filters = [
+            {"name": "article"},
+        ]
+        filtered_html = self._extract_content(html_content, filters)
+        if filtered_html:
+            html_content = filtered_html
 
         # Convert HTML to Markdown using MarkItDown's public API
         html_stream = io.BytesIO(html_content.encode('utf-8'))
