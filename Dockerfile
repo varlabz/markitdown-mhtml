@@ -23,7 +23,8 @@ COPY . /app
 RUN pip --no-cache-dir install \
     /app/packages/markitdown[all] \
     /app/packages/markitdown-sample-plugin \
-    /app/packages/markitdown-mhtml-plugin
+    /app/packages/markitdown-mhtml-plugin \
+    /app/packages/markitdown-youtube-transcript-plugin
 
 # Default USERID and GROUPID
 ARG USERID=nobody
