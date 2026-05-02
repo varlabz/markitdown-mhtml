@@ -51,7 +51,7 @@ print(result.markdown)
 ```python
 from markitdown import MarkItDown
 
-md = MarkItDown(enable_plugins=True)
+md = MarkItDown(enable_builtins=False, enable_plugins=True)
 result = md.convert(
     "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     youtube_transcript_languages=["en", "de"],
